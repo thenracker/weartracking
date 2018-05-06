@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
@@ -18,6 +19,10 @@ import android.widget.TextView;
 import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import cz.weissar.weartracker.service.TrackingService;
 
@@ -38,7 +43,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             @Override
             public void onClick(View view) {
                 //Intent intent = new Intent(WearMainActivity.this, MainActivity.class);
-                Wearable.getMessageClient(WearMainActivity.this).sendMessage("TEST", "TEST", null);
+                //Wearable.getMessageClient(WearMainActivity.this).sendMessage("TEST", "TEST", null);
+
+                checkLastUpdated();
             }
         });
 
@@ -74,8 +81,33 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             } else {
                 startService(serviceIntent);
             }
+            mTextView.setText("Měříme :)");
+        } else {
+            checkLastUpdated();
         }
-        mTextView.setText("Měříme :)");
+
+    }
+
+    private void checkLastUpdated() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+            try {
+
+                SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
+                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "accelerometer.txt";
+                File file = new File(fileName);
+
+                if (file.exists()) {
+                    String format = new SimpleDateFormat("d.M. HH:mm").format(file.lastModified());
+                    mTextView.setText("Poslední update " + format);
+                } else {
+                    mTextView.setText("Soubor zatim neexistuje");
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {

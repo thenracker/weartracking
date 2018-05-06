@@ -16,7 +16,11 @@
         app:boxedEdges="all">
 
         <TextView
+            style="@style/Widget.WearDiag.Button"
             android:id="@+id/text"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textSize="24dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/hello_world" />
