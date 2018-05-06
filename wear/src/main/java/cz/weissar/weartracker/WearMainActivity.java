@@ -50,7 +50,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         });
 
         // Enables Always-on
-        setAmbientEnabled();
+        //setAmbientEnabled();
 
         handleSensorService();
 
@@ -73,7 +73,6 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
 
 
     private void handleSensorService() {
-        trackingService = new TrackingService();
         if (!isMyServiceRunning(TrackingService.class)) {
             Intent serviceIntent = new Intent(this, TrackingService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -81,9 +80,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             } else {
                 startService(serviceIntent);
             }
-            mTextView.setText("Měříme :)");
+            mTextView.setText("Bylo spuštěno měření ;)");
         } else {
-            checkLastUpdated();
+            mTextView.setText("Měření stále probíhá :)");
         }
 
     }
