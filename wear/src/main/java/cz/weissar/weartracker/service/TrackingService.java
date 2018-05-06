@@ -42,6 +42,8 @@ public class TrackingService extends Service implements SensorEventListener {
     private NotificationManager mNM;
     private int NOTIFICATION = 066;
 
+    private boolean isRegistered;
+
     public TrackingService() {
     }
 
@@ -57,11 +59,13 @@ public class TrackingService extends Service implements SensorEventListener {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
         // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
+        showNotification(null);
         register();
+
+        instance = this;
     }
 
-    private void showNotification() {
+    private void showNotification(@Nullable String s) {
         // In this sample, we'll use the same text for the ticker and the expanded notification
         CharSequence text = "SERVICE STARTED";
 
@@ -71,13 +75,14 @@ public class TrackingService extends Service implements SensorEventListener {
         // Set the info for the views that show in the notification panel.
         Notification notification = new Notification.Builder(this)
                 .setSmallIcon(R.drawable.ic_cc_clear)  // the status icon
-                .setTicker(text)  // the status text
+                .setTicker(s == null? text : s)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp
                 .setContentTitle("WEAR TRACKING")  // the label of the entry
-                .setContentText(text)  // the contents of the entry
+                .setContentText(s == null? text : s)  // the contents of the entry
                 .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
                 .setAutoCancel(false)
                 .setOngoing(true)
+                .setOnlyAlertOnce(true)
                 .build();
 
         // Send the notification.
@@ -101,9 +106,12 @@ public class TrackingService extends Service implements SensorEventListener {
     }
 
     public void register() {
-        SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-        Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
+        if (!isRegistered){
+            SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+            Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
+        }
+        isRegistered = true;
     }
 
     private void unregister() {
@@ -112,36 +120,9 @@ public class TrackingService extends Service implements SensorEventListener {
 
         saveAccelerometer();
 
-        Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
-        showEndNotification();
-    }
-
-    private void showEndNotification() {
-
-        int notificationId = 001;
-        // The channel ID of the notification.
-        String id = "my_channel_01";
-        // Build intent for notification content
-        Intent viewIntent = new Intent(this, WearMainActivity.class);
-        //viewIntent.putExtra(EXTRA_EVENT_ID, eventId);
-        PendingIntent viewPendingIntent =
-                PendingIntent.getActivity(this, 0, viewIntent, 0);
-
-        // Notification channel ID is ignored for Android 7.1.1
-        // (API level 25) and lower.
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, id)
-                .setSmallIcon(R.drawable.ic_cc_clear)
-                .setContentTitle("Měření zastaveno")
-                .setContentText(String.format("V čase %s", System.currentTimeMillis()))
-                .setContentIntent(viewPendingIntent)
-                .setAutoCancel(true);
-
-        // Get an instance of the NotificationManager service
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-
-        // Issue the notification with notification manager.
-        notificationManager.notify(notificationId, notificationBuilder.build());
-
+        isRegistered = false;
+        /*Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
+        showEndNotification();*/
     }
 
     @Override
@@ -194,6 +175,10 @@ public class TrackingService extends Service implements SensorEventListener {
                 out.write(builder.toString());
                 out.flush();
                 out.close();
+
+                String format = new SimpleDateFormat("d.M. HH:mm:ss").format(file.lastModified());
+                showNotification(format);
+
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {

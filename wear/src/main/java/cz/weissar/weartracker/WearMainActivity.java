@@ -82,6 +82,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             }
             mTextView.setText("Bylo spuštěno měření ;)");
         } else {
+            TrackingService.instance.register(); //just for sure
             mTextView.setText("Měření stále probíhá :)");
         }
 
@@ -97,7 +98,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                 File file = new File(fileName);
 
                 if (file.exists()) {
-                    String format = new SimpleDateFormat("d.M. HH:mm").format(file.lastModified());
+                    String format = new SimpleDateFormat("d.M. HH:mm:ss").format(file.lastModified());
                     mTextView.setText("Poslední update " + format);
                 } else {
                     mTextView.setText("Soubor zatim neexistuje");
