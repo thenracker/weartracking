@@ -2,8 +2,6 @@ package cz.weissar.weartracker;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.Notification;
-import android.bluetooth.BluetoothClass;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.wearable.MessageClient;
@@ -31,13 +30,17 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
     private TextView mTextView;
 
     TrackingService trackingService;
+    ImageView cancelButton;
+    ImageView okButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wear_main);
 
-        mTextView = (TextView) findViewById(R.id.text);
+        mTextView = findViewById(R.id.text);
+        okButton = findViewById(R.id.okButton);
+        cancelButton = findViewById(R.id.cancelButton);
 
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,13 +55,26 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         // Enables Always-on
         //setAmbientEnabled();
 
-        handleSensorService();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 666);
         }
 
         Wearable.getMessageClient(this).addListener(this);
+
+        okButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                handleSensorService();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopService(new Intent(WearMainActivity.this, TrackingService.class));
+            }
+        });
     }
 
     @Override
@@ -80,9 +96,8 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             } else {
                 startService(serviceIntent);
             }
-            mTextView.setText("Bylo spuštěno měření ;)");
+            mTextView.setText("Bylo spuštěno měření");
         } else {
-            TrackingService.instance.register(); //just for sure
             mTextView.setText("Měření stále probíhá :)");
         }
 
@@ -104,7 +119,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                     mTextView.setText("Soubor zatim neexistuje");
                 }
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -113,7 +128,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
+            if (serviceClass.getName().equals(service.service.getClassName())/* && service.*/) {
                 return true;
             }
         }

@@ -14,9 +14,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
@@ -32,81 +31,53 @@ import cz.weissar.weartracker.WearMainActivity;
 
 public class TrackingService extends Service implements SensorEventListener {
 
-    public static TrackingService instance;
-
     private static final int SIZE = 1024;
 
     int accelerometerPointer = 0;
     long[] accelerometerTimestamp = new long[SIZE];
     float[] accelerometerValues = new float[SIZE * 3];
-    private NotificationManager mNM;
     private int NOTIFICATION = 066;
 
     private boolean isRegistered;
+
+
+    PowerManager.WakeLock wl;
 
     public TrackingService() {
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
-        return START_NOT_STICKY;
+        try {
+
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WAKELOCK_TAG");
+            wl.acquire();
+
+            return START_REDELIVER_INTENT;
+        } catch (Exception e) {
+            return START_REDELIVER_INTENT;
+        }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
-        // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification(null);
+        startForeground(NOTIFICATION, showNotification(null));
         register();
-
-        instance = this;
     }
-
-    private void showNotification(@Nullable String s) {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = "SERVICE STARTED";
-
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WearMainActivity.class), 0);
-
-        // Set the info for the views that show in the notification panel.
-        Notification notification = new Notification.Builder(this)
-                .setSmallIcon(R.drawable.ic_cc_clear)  // the status icon
-                .setTicker(s == null? text : s)  // the status text
-                .setWhen(System.currentTimeMillis())  // the time stamp
-                .setContentTitle("WEAR TRACKING")  // the label of the entry
-                .setContentText(s == null? text : s)  // the contents of the entry
-                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
-                .setAutoCancel(false)
-                .setOngoing(true)
-                .setOnlyAlertOnce(true)
-                .build();
-
-        // Send the notification.
-        mNM.notify(NOTIFICATION, notification);
-    }
-
-    /*@Override
-    public void onRebind(Intent intent) {
-        super.onRebind(intent);
-        register();
-    }*/
 
     @Override
     public void onDestroy() {
         unregister();
-
-        mNM.cancel(NOTIFICATION);
+        wl.release();
 
         /*Intent broadcastIntent = new Intent(RestartSensor.class.getName());
         sendBroadcast(broadcastIntent);*/
     }
 
     public void register() {
-        if (!isRegistered){
+        if (!isRegistered) {
             SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
             Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
@@ -121,23 +92,28 @@ public class TrackingService extends Service implements SensorEventListener {
         saveAccelerometer();
 
         isRegistered = false;
-        /*Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
-        showEndNotification();*/
+
+        Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            if (accelerometerPointer == accelerometerTimestamp.length) {
-                saveAccelerometer();
-                accelerometerPointer = 0;
-            }
-            accelerometerTimestamp[accelerometerPointer] = sensorEvent.timestamp;
-            accelerometerValues[(3 * accelerometerPointer)] = sensorEvent.values[0];
-            accelerometerValues[(3 * accelerometerPointer) + 1] = sensorEvent.values[1];
-            accelerometerValues[(3 * accelerometerPointer) + 2] = sensorEvent.values[2];
+        try {
 
-            accelerometerPointer++;
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                if (accelerometerPointer == accelerometerTimestamp.length) {
+                    saveAccelerometer();
+                    accelerometerPointer = 0;
+                }
+                accelerometerTimestamp[accelerometerPointer] = sensorEvent.timestamp;
+                accelerometerValues[(3 * accelerometerPointer)] = sensorEvent.values[0];
+                accelerometerValues[(3 * accelerometerPointer) + 1] = sensorEvent.values[1];
+                accelerometerValues[(3 * accelerometerPointer) + 2] = sensorEvent.values[2];
+
+                accelerometerPointer++;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -177,12 +153,12 @@ public class TrackingService extends Service implements SensorEventListener {
                 out.close();
 
                 String format = new SimpleDateFormat("d.M. HH:mm:ss").format(file.lastModified());
-                showNotification(format);
+
+                NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                manager.notify(NOTIFICATION, showNotification(format));
 
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                //DONE
             }
 
         }
@@ -198,5 +174,30 @@ public class TrackingService extends Service implements SensorEventListener {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private Notification showNotification(@Nullable String s) {
+        // In this sample, we'll use the same text for the ticker and the expanded notification
+        CharSequence text = "SERVICE STARTED";
+
+        // The PendingIntent to launch our activity if the user selects this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, WearMainActivity.class), 0);
+
+        // Set the info for the views that show in the notification panel.
+        Notification notification = new Notification.Builder(this)
+                .setSmallIcon(R.drawable.ic_cc_clear)  // the status icon
+                .setTicker(s == null ? text : s)  // the status text
+                .setWhen(System.currentTimeMillis())  // the time stamp
+                .setContentTitle("WEAR TRACKING")  // the label of the entry
+                .setContentText(s == null ? text : s)  // the contents of the entry
+                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+                .setAutoCancel(false)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .build();
+
+        return notification;
+        // Send the notification.
+        //mNM.notify(NOTIFICATION, notification);
     }
 }
