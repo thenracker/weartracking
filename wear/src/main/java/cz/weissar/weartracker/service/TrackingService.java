@@ -72,8 +72,6 @@ public class TrackingService extends Service implements SensorEventListener {
         unregister();
         wl.release();
 
-        /*Intent broadcastIntent = new Intent(RestartSensor.class.getName());
-        sendBroadcast(broadcastIntent);*/
     }
 
     public void register() {
@@ -93,6 +91,8 @@ public class TrackingService extends Service implements SensorEventListener {
 
         isRegistered = false;
 
+        NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        nManager.cancel(NOTIFICATION);
         Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
 
