@@ -29,7 +29,6 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
 
     private TextView mTextView;
 
-    TrackingService trackingService;
     ImageView cancelButton;
     ImageView okButton;
 
@@ -54,7 +53,6 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
 
         // Enables Always-on
         //setAmbientEnabled();
-
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 666);
@@ -109,7 +107,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             try {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
-                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "accelerometer.txt";
+                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "values.txt";
                 File file = new File(fileName);
 
                 if (file.exists()) {

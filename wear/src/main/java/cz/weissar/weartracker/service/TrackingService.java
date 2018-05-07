@@ -36,10 +36,24 @@ public class TrackingService extends Service implements SensorEventListener {
     int accelerometerPointer = 0;
     long[] accelerometerTimestamp = new long[SIZE];
     float[] accelerometerValues = new float[SIZE * 3];
+
+    int gyroscopePointer = 0;
+    long[] gyroscopeTimestamp = new long[SIZE];
+    float[] gyroscopeValues = new float[SIZE * 3];
+
+    long[] heartBeatTimestamp = new long[SIZE];
+    private float[] heartBeat = new float[SIZE];
+    int heartBeatPointer = 0;
+    long[] pressureTimestamp = new long[SIZE];
+    private float[] pressure = new float[SIZE];
+    int pressurePointer = 0;
+
+
     private int NOTIFICATION = 066;
 
     private boolean isRegistered;
 
+    private int[] sensors = new int[]{Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE, Sensor.TYPE_PRESSURE, Sensor.TYPE_HEART_BEAT};
 
     PowerManager.WakeLock wl;
 
@@ -77,7 +91,9 @@ public class TrackingService extends Service implements SensorEventListener {
     public void register() {
         if (!isRegistered) {
             SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            manager.registerListener(this, manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
+            for (int sensor : sensors) {
+                manager.registerListener(this, manager.getDefaultSensor(sensor), SensorManager.SENSOR_DELAY_FASTEST);
+            }
             Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
         }
         isRegistered = true;
@@ -85,9 +101,11 @@ public class TrackingService extends Service implements SensorEventListener {
 
     private void unregister() {
         SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        manager.unregisterListener(this, manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER));
+        for (int sensor : sensors) {
+            manager.unregisterListener(this, manager.getDefaultSensor(sensor));
+        }
 
-        saveAccelerometer();
+        saveVals();
 
         isRegistered = false;
 
@@ -96,56 +114,130 @@ public class TrackingService extends Service implements SensorEventListener {
         Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
 
+    //private int[] sensors = new int[]{Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE, Sensor.TYPE_PRESSURE, Sensor.TYPE_HEART_BEAT};
+
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         try {
-
             if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                if (accelerometerPointer == accelerometerTimestamp.length) {
-                    saveAccelerometer();
-                    accelerometerPointer = 0;
-                }
-                accelerometerTimestamp[accelerometerPointer] = sensorEvent.timestamp;
+                accelerometerTimestamp[accelerometerPointer] = System.currentTimeMillis();
                 accelerometerValues[(3 * accelerometerPointer)] = sensorEvent.values[0];
                 accelerometerValues[(3 * accelerometerPointer) + 1] = sensorEvent.values[1];
                 accelerometerValues[(3 * accelerometerPointer) + 2] = sensorEvent.values[2];
 
+                handleAccelerometerAndGyro();
+
                 accelerometerPointer++;
             }
+
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                gyroscopeValues[(3 * gyroscopePointer)] = sensorEvent.values[0];
+                gyroscopeValues[(3 * gyroscopePointer) + 1] = sensorEvent.values[1];
+                gyroscopeValues[(3 * gyroscopePointer) + 2] = sensorEvent.values[2];
+
+                //handleAccelerometerAndGyro();
+
+                gyroscopePointer++;
+            }
+
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_PRESSURE) {
+                pressureTimestamp[pressurePointer] = System.currentTimeMillis();
+                pressure[pressurePointer] = sensorEvent.values[0];
+                pressurePointer++;
+            }
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_HEART_BEAT) {
+                heartBeatTimestamp[heartBeatPointer] = System.currentTimeMillis();
+                heartBeat[heartBeatPointer] = sensorEvent.values[0];
+                heartBeatPointer++;
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void saveAccelerometer() {
+    private void handleAccelerometerAndGyro() {
+
+        // TOTO bude fungovat jen když akcelerometr bude výkonější než GYRO - god bless
+        if (accelerometerPointer == accelerometerTimestamp.length - 1/* && gyroscopePointer == accelerometerPointer*/) {
+            saveVals();
+            accelerometerPointer = 0;
+            gyroscopePointer = 0;
+            pressurePointer = 0;
+            heartBeatPointer = 0;
+
+            gyroscopeTimestamp = new long[SIZE];
+            heartBeatTimestamp = new long[SIZE];
+            pressureTimestamp = new long[SIZE];
+        }
+
+    }
+
+    private void saveVals() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+            //fixme ? přepsat tuto metodu spíše tak, že se to nebude zapisovat v tomto hard cyklu ale asynchroně? anebo že při každé změně senzoru rovnou zapíšeme string všech hodnot?
 
             try {
 
                 SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
-                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "accelerometer.txt";
+                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "values.txt";
                 File file = new File(fileName);
 
                 boolean append = false;
                 StringBuilder builder;
                 if (!file.exists()) {
-                    builder = new StringBuilder("timestamp,accX,accY,accZ\n");
+                    builder = new StringBuilder("timestamp,accX,accY,accZ,gyroX,gyroY,gyroZ,pressure,heartBeat\n");
                 } else {
                     builder = new StringBuilder();
                     append = true;
                 }
 
+                //(String.valueOf(accelerometerValues[(i * 3)])).replace(".", ","), --btw
+
+                int nowGyroPointer = 0;
+                int nowHbPointer = 0;
+                int nowPressurePointer = 0;
+                float[] nowGyro = new float[3];
+                float nowHb = 0;
+                float nowPressure = 0;
+
                 for (int i = 0; i < accelerometerPointer; i++) {
-                    builder.append(String.format("%s,%s,%s,%s\n",
+
+                    if (gyroscopeTimestamp[nowGyroPointer] > accelerometerTimestamp[i]) {
+                        nowGyro[0] = gyroscopeValues[(nowGyroPointer * 3)];
+                        nowGyro[1] = gyroscopeValues[(nowGyroPointer * 3) + 1];
+                        nowGyro[2] = gyroscopeValues[(nowGyroPointer * 3) + 2];
+                        nowGyroPointer++;
+                    }
+
+                    if (pressureTimestamp[nowPressurePointer] > accelerometerTimestamp[i]) {
+                        nowPressure = heartBeat[nowPressurePointer];
+                        nowPressurePointer++;
+                    }
+
+                    if (heartBeatTimestamp[nowHbPointer] > accelerometerTimestamp[i]) {
+                        nowHb = heartBeat[nowHbPointer];
+                        nowHbPointer++;
+                    }
+
+                    builder.append(String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
                             (accelerometerTimestamp[i]),
-                            //(String.valueOf(accelerometerValues[(i * 3)])).replace(".", ","),
                             ((accelerometerValues[(i * 3)])),
-                            //(String.valueOf(accelerometerValues[(i * 3) + 1])).replace(".", ","),
                             ((accelerometerValues[(i * 3) + 1])),
-                            //(String.valueOf(accelerometerValues[(i * 3) + 2])).replace(".", ",")
-                            ((accelerometerValues[(i * 3) + 2]))
+                            ((accelerometerValues[(i * 3) + 2])),
+
+                            ((nowGyro[0])),
+                            ((nowGyro[1])),
+                            ((nowGyro[2])),
+
+                            (nowPressure),
+
+                            (nowHb)
                     ));
                 }
+
+                //méně záznamů - nutno resetnout
 
                 BufferedWriter out = new BufferedWriter(new FileWriter(fileName, append));
                 out.write(builder.toString());
