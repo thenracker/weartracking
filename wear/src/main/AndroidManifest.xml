@@ -20,6 +20,7 @@
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
+
         <!--
                Set to true if your app is Standalone, that is, it does not require the handheld
                app to run.
@@ -43,16 +44,16 @@
         <service android:name=".service.TrackingService"  />
 
 
-        <receiver android:name=".service.RestartSensor"
+        <!--<receiver android:name=".service.RestartSensor"
             android:enabled="true"
             android:exported="true"
-            android:label="TrackingServiceWasStopped"> <!-- Je-li exported na false tak může být volána jen z této aplikace - s "TRUE" může být volána i z jiných aplikací -->
+            android:label="TrackingServiceWasStopped"> &lt;!&ndash; Je-li exported na false tak může být volána jen z této aplikace - s "TRUE" může být volána i z jiných aplikací &ndash;&gt;
 
-            <!--<intent-filter>
+            &lt;!&ndash;<intent-filter>
                 &lt;!&ndash;<action android:name=""&ndash;&gt;
-            </intent-filter>-->
+            </intent-filter>&ndash;&gt;
 
-        </receiver>
+        </receiver>-->
 
     </application>
 

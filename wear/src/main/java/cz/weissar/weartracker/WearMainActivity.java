@@ -28,8 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-import cz.weissar.weartracker.service.Measurement;
-import cz.weissar.weartracker.service.Measurement_Table;
 import cz.weissar.weartracker.service.SensorHandler;
 import cz.weissar.weartracker.service.TrackingService;
 
@@ -54,7 +52,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mTextView.setText(String.valueOf(SQLite.selectCountOf().from(Measurement.class).count()));
+                //mTextView.setText(String.valueOf(SQLite.selectCountOf().from(Measurement.class).count()));
             }
         });
 
@@ -100,7 +98,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             }
         });
 
-        if (isMyServiceRunning(TrackingService.class)){
+        if (isMyServiceRunning(TrackingService.class)) {
             mTextView.setText("Měření již probíhá");
         } else {
             mTextView.setText("Spusťte měření");
@@ -156,7 +154,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         }
     }
 
-    private void saveVals(final SensorHandler.Type type) {
+    /*private void saveVals(final SensorHandler.Type type) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
 
             SQLite.select().from(Measurement.class).where(Measurement_Table.sensorType.eq(type)).async().queryListResultCallback(new QueryTransaction.QueryResultListCallback<Measurement>() {
@@ -201,7 +199,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                 }
             }).execute();
         }
-    }
+    }*/
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

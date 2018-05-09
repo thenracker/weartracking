@@ -1,4 +1,4 @@
-package cz.weissar.weartracker.service;
+package cz.weissar.weartracker.database;
 
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
@@ -6,7 +6,9 @@ import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import cz.weissar.weartracker.database.AppDatabase;
+import cz.weissar.weartracker.service.SensorHandler;
 
+@Deprecated //Je to blbý nápad zapisovat do sqlite.. nehodí se pro stovky tisíc záznamů
 @Table(database = AppDatabase.class)
 public class Measurement extends BaseModel {
 

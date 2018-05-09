@@ -132,7 +132,7 @@ public class SensorHandler {
             boolean append = false;
             final StringBuilder builder;
             if (!file.exists()) {
-                builder = new StringBuilder("timestamp," + (sensorType.equals(Type.PRESSURE)? "pressure":"pulse") + (sensorType.getColumnCount() == 1 ? "\n" : ",y,z\n"));
+                builder = new StringBuilder("timestamp," + (sensorType.equals(Type.PRESSURE)? "hpa":(sensorType.equals(Type.HEART_RATE)? "bpm":"x")) + (sensorType.getColumnCount() == 1 ? "\n" : ",y,z\n"));
             } else {
                 builder = new StringBuilder();
                 append = true;
