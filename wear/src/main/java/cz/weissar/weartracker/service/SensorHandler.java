@@ -1,5 +1,6 @@
 package cz.weissar.weartracker.service;
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.os.Environment;
 
@@ -11,8 +12,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
+
+import cz.weissar.weartracker.database.Pref;
 
 public class SensorHandler {
+
+    private Context context;
 
     public enum Type {
 
@@ -55,14 +61,15 @@ public class SensorHandler {
 
     private int pointer = 0;
 
-    public static SensorHandler newInstance(Type sensorType) {
-        return new SensorHandler(sensorType);
+    public static SensorHandler newInstance(Type sensorType, Context context) {
+        return new SensorHandler(sensorType, context);
     }
 
     private SensorHandler() { //nepoužívat
     }
 
-    private SensorHandler(Type sensorType) {
+    private SensorHandler(Type sensorType, Context context) {
+        this.context = context;
         this.sensorType = sensorType;
         this.columnCount = sensorType.columnCount;
 
@@ -81,16 +88,21 @@ public class SensorHandler {
         for (int i = 0; i < columnCount; i++) {
             this.values[firstFilled ? (columnCount + i) : (i)][pointer] = values[i];
         }
+
         if (!firstFilled) {
-            timestamp1[pointer] = System.currentTimeMillis();
+            timestamp1[pointer] = currentMillis();
         } else {
-            timestamp2[pointer] = System.currentTimeMillis();
+            timestamp2[pointer] = currentMillis();
         }
         pointer++;
 
         if (pointer == SIZE) {
             saveValues();
         }
+    }
+
+    private long currentMillis() {
+        return Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis();
     }
 
     public void saveValues() {
@@ -123,7 +135,7 @@ public class SensorHandler {
 
             SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
             String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/"
-                    + sdf.format(Calendar.getInstance().getTime()) + "/"
+                    + /*sdf.format(Calendar.getInstance().getTime())*/ Pref.getFolderName(context) + "/"
                     + sensorType.name() + ".txt";
             File file = new File(fileName);
 

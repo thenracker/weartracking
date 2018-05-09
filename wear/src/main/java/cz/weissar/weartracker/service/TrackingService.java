@@ -69,9 +69,9 @@ public class TrackingService extends Service implements SensorEventListener {
             handlers = new ArrayList<>();
             SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             for (SensorHandler.Type sensor : sensors) {
-                handlers.add(SensorHandler.newInstance(sensor));
+                handlers.add(SensorHandler.newInstance(sensor, getBaseContext()));
                 manager.registerListener(this, manager.getDefaultSensor(sensor.getType()),
-                        (sensor.equals(SensorHandler.Type.HEART_RATE)? SensorManager.SENSOR_DELAY_NORMAL : SensorManager.SENSOR_DELAY_FASTEST));
+                        ((sensor.equals(SensorHandler.Type.HEART_RATE) || sensor.equals(SensorHandler.Type.PRESSURE))? SensorManager.SENSOR_DELAY_NORMAL : SensorManager.SENSOR_DELAY_FASTEST));
             }
             Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
         }
