@@ -24,13 +24,12 @@
             android:layout_marginBottom="28dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world" />
+            android:text="Měření" />
 
         <ImageView
             android:id="@+id/cancelButton"
             android:src="@drawable/close_button"
             android:layout_marginTop="32dp"
-            android:layout_marginLeft="26dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:layout_width="36dp"
@@ -40,7 +39,17 @@
             android:id="@+id/okButton"
             android:src="@drawable/ic_cc_checkmark"
             android:layout_marginTop="32dp"
-            android:layout_marginRight="26dp"
+            android:layout_marginRight="60dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_width="36dp"
+            android:layout_height="36dp" />
+
+        <ImageView
+            android:id="@+id/saveButton"
+            android:src="@drawable/ic_more_vert_24dp_wht"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="60dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:layout_width="36dp"
