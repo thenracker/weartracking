@@ -11,6 +11,6 @@ public class WearApp extends Application {
     public void onCreate() {
         super.onCreate();
 
-        FlowManager.init(new FlowConfig.Builder(this).openDatabasesOnInit(true).build()); //db
+        //FlowManager.init(new FlowConfig.Builder(this).openDatabasesOnInit(true).build()); //db
     }
 }

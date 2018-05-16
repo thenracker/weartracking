@@ -9,7 +9,7 @@ import cz.weissar.weartracker.database.AppDatabase;
 import cz.weissar.weartracker.service.SensorHandler;
 
 @Deprecated //Je to blbý nápad zapisovat do sqlite.. nehodí se pro stovky tisíc záznamů
-@Table(database = AppDatabase.class)
+//@Table(database = AppDatabase.class)
 public class Measurement extends BaseModel {
 
     @PrimaryKey(autoincrement = true)

@@ -2,6 +2,7 @@ package cz.weissar.weartracker.service;
 
 import android.content.Context;
 import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Environment;
 
 import java.io.BufferedWriter;
@@ -9,9 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.TimeZone;
 
 import cz.weissar.weartracker.database.Pref;
@@ -22,18 +21,19 @@ public class SensorHandler {
 
     public enum Type {
 
-        ACCELEROMETER(Sensor.TYPE_ACCELEROMETER, 3),
-        GYROSCOPE(Sensor.TYPE_GYROSCOPE, 3),
-        PRESSURE(Sensor.TYPE_PRESSURE, 1),
-        HEART_RATE(Sensor.TYPE_HEART_RATE, 1),
-        HEART_BEAT(Sensor.TYPE_HEART_BEAT, 1);
+        ACCELEROMETER(Sensor.TYPE_ACCELEROMETER, 3, SensorManager.SENSOR_DELAY_FASTEST),
+        GYROSCOPE(Sensor.TYPE_GYROSCOPE, 3, SensorManager.SENSOR_DELAY_FASTEST),
+        PRESSURE(Sensor.TYPE_PRESSURE, 1, SensorManager.SENSOR_DELAY_NORMAL),
+        HEART_RATE(Sensor.TYPE_HEART_RATE, 1, SensorManager.SENSOR_DELAY_FASTEST);
 
         private int sensorType;
         private int columnCount;
+        private int delay;
 
-        Type(int sensorType, int columnCount) {
+        Type(int sensorType, int columnCount, int delay) {
             this.sensorType = sensorType;
             this.columnCount = columnCount;
+            this.delay = delay;
         }
 
         public int getType() {
@@ -42,6 +42,10 @@ public class SensorHandler {
 
         public int getColumnCount() {
             return columnCount;
+        }
+
+        public int getDelay() {
+            return delay;
         }
     }
 
@@ -111,26 +115,6 @@ public class SensorHandler {
         int lastPoint = pointer; //kdybychom volali dříve než konec bufferu, pak zapíšeme pouze dosud zapsané hodnoty
         pointer = 0;
 
-        //nyní otočené hodnoty
-        /*final List<Measurement> measurements = new ArrayList<>();
-        for (int i = 0; i < lastPoint; i++) {
-            Measurement measurement = new Measurement(sensorType, firstFilled ? timestamp1[i] : timestamp2[i]);
-            for (int j = 0; i < columnCount; i++) {
-                measurement.setVal(firstFilled ? j : (j + columnCount), values[firstFilled ? j : (j + columnCount)][i]);
-            }
-            measurements.add(measurement);
-        }*/
-
-        //SQLITE nestíhala
-        /*FlowManager.getDatabase(AppDatabase.class).beginTransactionAsync(new ITransaction() {
-            @Override
-            public void execute(DatabaseWrapper databaseWrapper) {
-                for (Measurement measurement : measurements) {
-                    measurement.save(databaseWrapper);
-                }
-            }
-        }).build().execute();*/
-
         try {
 
             SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
@@ -142,15 +126,15 @@ public class SensorHandler {
             file.getParentFile().mkdirs(); //složky nad
 
             boolean append = false;
-            final StringBuilder builder;
+            final StringBuilder builder = new StringBuilder(); //JÍŤA NECHCE HLAVIČKU
             if (!file.exists()) {
-                builder = new StringBuilder("timestamp," + (sensorType.equals(Type.PRESSURE)? "hpa":(sensorType.equals(Type.HEART_RATE)? "bpm":"x")) + (sensorType.getColumnCount() == 1 ? "\n" : ",y,z\n"));
+                //builder = new StringBuilder("timestamp," + (sensorType.equals(Type.PRESSURE)? "hpa":(sensorType.equals(Type.HEART_RATE)? "bpm":"x")) + (sensorType.getColumnCount() == 1 ? "\n" : ",y,z\n"));
             } else {
-                builder = new StringBuilder();
+                //builder = new StringBuilder();
                 append = true;
             }
 
-            for (int i = 0; i < lastPoint; i++){
+            for (int i = 0; i < lastPoint; i++) {
                 if (sensorType.getColumnCount() == 1) {
                     builder.append(String.format("%s,%s\n", firstFilled ? timestamp1[i] : timestamp2[i],
                             values[firstFilled ? 0 : (0 + columnCount)][i]

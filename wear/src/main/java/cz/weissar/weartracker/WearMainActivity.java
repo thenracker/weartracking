@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
@@ -18,17 +17,7 @@ import android.widget.TextView;
 import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
-import com.raizlabs.android.dbflow.sql.language.SQLite;
-import com.raizlabs.android.dbflow.structure.database.transaction.QueryTransaction;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.List;
-
-import cz.weissar.weartracker.service.SensorHandler;
 import cz.weissar.weartracker.service.TrackingService;
 
 public class WearMainActivity extends WearableActivity implements MessageClient.OnMessageReceivedListener {
@@ -131,75 +120,6 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         }
 
     }
-
-    private void checkLastUpdated() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-
-            try {
-
-                SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
-                String fileName = Environment.getExternalStorageDirectory().toString() + "/" + sdf.format(Calendar.getInstance().getTime()) + "_" + "values.txt";
-                File file = new File(fileName);
-
-                if (file.exists()) {
-                    String format = new SimpleDateFormat("d.M. HH:mm:ss").format(file.lastModified());
-                    mTextView.setText("Poslední update " + format);
-                } else {
-                    mTextView.setText("Soubor zatim neexistuje");
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /*private void saveVals(final SensorHandler.Type type) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-
-            SQLite.select().from(Measurement.class).where(Measurement_Table.sensorType.eq(type)).async().queryListResultCallback(new QueryTransaction.QueryResultListCallback<Measurement>() {
-                @Override
-                public void onListQueryResult(QueryTransaction transaction, @NonNull List<Measurement> tResult) {
-                    try {
-                        if (!tResult.isEmpty()) {
-
-                            SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
-                            String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/" + sdf.format(Calendar.getInstance().getTime()) + "/" + type.name() + ".txt";
-                            File file = new File(fileName);
-
-                            file.getParentFile().mkdirs(); //složky nad
-
-                            boolean append = false;
-                            final StringBuilder builder;
-                            if (!file.exists()) {
-                                builder = new StringBuilder("timestamp,x" + (type.getColumnCount() == 1 ? "\n" : ",y,z\n"));
-                            } else {
-                                builder = new StringBuilder();
-                                append = true;
-                            }
-
-                            for (Measurement measurement : tResult) {
-                                if (type.getColumnCount() == 1) {
-                                    builder.append(String.format("%s,%s\n", measurement.getTime(), measurement.getVal1()));
-                                } else {
-                                    builder.append(String.format("%s,%s,%s,%s\n", measurement.getTime(), measurement.getVal1(), measurement.getVal2(), measurement.getVal3()));
-                                }
-                            }
-                            BufferedWriter out = new BufferedWriter(new FileWriter(fileName, append));
-                            out.write(builder.toString());
-                            out.flush();
-                            out.close();
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        SQLite.delete().from(Measurement.class).where(Measurement_Table.sensorType.eq(type)).execute();
-                    }
-                }
-            }).execute();
-        }
-    }*/
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

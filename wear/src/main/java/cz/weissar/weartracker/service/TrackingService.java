@@ -61,7 +61,6 @@ public class TrackingService extends Service implements SensorEventListener {
     public void onDestroy() {
         unregister();
         wl.release();
-
     }
 
     public void register() {
@@ -70,8 +69,7 @@ public class TrackingService extends Service implements SensorEventListener {
             SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             for (SensorHandler.Type sensor : sensors) {
                 handlers.add(SensorHandler.newInstance(sensor, getBaseContext()));
-                manager.registerListener(this, manager.getDefaultSensor(sensor.getType()),
-                        ((sensor.equals(SensorHandler.Type.HEART_RATE) || sensor.equals(SensorHandler.Type.PRESSURE))? SensorManager.SENSOR_DELAY_NORMAL : SensorManager.SENSOR_DELAY_FASTEST));
+                manager.registerListener(this, manager.getDefaultSensor(sensor.getType()), sensor.getDelay());
             }
             Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
         }
@@ -95,8 +93,6 @@ public class TrackingService extends Service implements SensorEventListener {
         nManager.cancel(NOTIFICATION);
         Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
-
-    //private int[] sensors = new int[]{Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE, Sensor.TYPE_PRESSURE, Sensor.TYPE_HEART_BEAT};
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -153,7 +149,5 @@ public class TrackingService extends Service implements SensorEventListener {
                 .build();
 
         return notification;
-        // Send the notification.
-        //mNM.notify(NOTIFICATION, notification);
     }
 }
