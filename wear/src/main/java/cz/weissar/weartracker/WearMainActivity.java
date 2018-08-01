@@ -26,7 +26,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
 
     ImageView cancelButton;
     ImageView okButton;
-    ImageView saveButton;
+    //ImageView saveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +36,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         mTextView = findViewById(R.id.text);
         okButton = findViewById(R.id.okButton);
         cancelButton = findViewById(R.id.cancelButton);
-        saveButton = findViewById(R.id.saveButton);
+        //saveButton = findViewById(R.id.saveButton);
 
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override

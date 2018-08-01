@@ -31,6 +31,7 @@
             android:src="@drawable/close_button"
             android:layout_marginTop="32dp"
             android:layout_gravity="center"
+            android:layout_marginLeft="30dp"
             android:gravity="center"
             android:layout_width="36dp"
             android:layout_height="36dp" />
@@ -39,13 +40,13 @@
             android:id="@+id/okButton"
             android:src="@drawable/ic_cc_checkmark"
             android:layout_marginTop="32dp"
-            android:layout_marginRight="60dp"
+            android:layout_marginRight="30dp"
             android:layout_gravity="center"
             android:gravity="center"
             android:layout_width="36dp"
             android:layout_height="36dp" />
 
-        <ImageView
+        <!--<ImageView
             android:id="@+id/saveButton"
             android:src="@drawable/ic_more_vert_24dp_wht"
             android:layout_marginTop="32dp"
@@ -53,7 +54,7 @@
             android:layout_gravity="center"
             android:gravity="center"
             android:layout_width="36dp"
-            android:layout_height="36dp" />
+            android:layout_height="36dp" />-->
 
     </FrameLayout>
 </android.support.wear.widget.BoxInsetLayout>

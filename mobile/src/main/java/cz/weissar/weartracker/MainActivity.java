@@ -1,5 +1,7 @@
 package cz.weissar.weartracker;
 
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -62,6 +64,15 @@ public class MainActivity extends AppCompatActivity implements MessageClient.OnM
 
 
         //Wearable.getMessageClient(this).sendMessage("TEST", "TEST", null);
+
+        //stopService(new Intent(WearMainActivity.this, TrackingService.class));
+
+        Intent serviceIntent = new Intent(this, TrackingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
     @Override
