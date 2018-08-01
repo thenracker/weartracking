@@ -18,6 +18,7 @@ import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
+import cz.weissar.weartracker.service.SendFilesService;
 import cz.weissar.weartracker.service.TrackingService;
 
 public class WearMainActivity extends WearableActivity implements MessageClient.OnMessageReceivedListener {
@@ -84,6 +85,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             public void onClick(View view) {
                 stopService(new Intent(WearMainActivity.this, TrackingService.class));
                 mTextView.setText("Měření ukončeno");
+                Intent intent = new Intent(WearMainActivity.this, SendFilesService.class);
+                intent.putExtra("NAME", "HEART_RATE"); //todo pozměňkat
+                startService(intent);
             }
         });
 
