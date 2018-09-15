@@ -47,52 +47,6 @@ public class SendFilesService extends IntentService {
         }
     }
 
-    /*private void handleOldWay(Intent intent) {
-        try {
-            //TODO - todo for all files in folders here
-            String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/MEASURE_2/"
-                    //+ Pref.getFolderName(getBaseContext()) + "/"
-                    + intent.getExtras().getString("NAME") + ".txt";
-            File file = new File(fileName);
-
-            URL url = new URL("http://imitgw.uhk.cz:59729/uhkhelper/file");
-            HttpURLConnection connection = ((HttpURLConnection) url.openConnection());
-            connection.setDoOutput(true);
-            connection.setDoInput(true);
-            connection.setUseCaches(false);
-            connection.setRequestMethod("POST");
-
-            connection.setRequestProperty("Connection", "Keep-Alive");
-            connection.addRequestProperty("Cache-Control", "no-cache");
-            connection.addRequestProperty("Content-length", file.length() + "");
-            String boundary = "*****";
-            connection.addRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-
-            connection.connect();
-
-            InputStream input = new FileInputStream(file);
-            OutputStream output = connection.getOutputStream();
-
-            // cache
-            byte[] cache = new byte[CACHE_SIZE];
-
-            int count;
-            while ((count = input.read(cache)) != -1) {
-                output.write(cache, 0, count);
-            }
-
-            output.flush();
-
-            output.close();
-            input.close();
-
-            connection.disconnect();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
-
     private void handleNewWay(Intent intent, String requestURL) throws Exception {
         // creates a unique boundary based on time stamp
         URL url = new URL(requestURL);

@@ -103,13 +103,17 @@ public class SensorHandler {
         if (pointer == SIZE) {
             saveValues();
         }
+
+        // TODO - detekceChovaniZRulesu() ... a v tom případě vyslat request na telefon a tak - na to bude ale nový objekt
+        // TODO - manager, který to úplně pozaobstará - řekne přes bluetooth telefonu - ukaž notifikaci!
     }
 
     private long currentMillis() {
         return Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTimeInMillis();
     }
 
-    public void saveValues() {
+    public void saveValues() { // na jiném vlákně? fixme?
+
         //otočit buffery a začít od nuly
         firstFilled = !firstFilled;
         int lastPoint = pointer; //kdybychom volali dříve než konec bufferu, pak zapíšeme pouze dosud zapsané hodnoty
