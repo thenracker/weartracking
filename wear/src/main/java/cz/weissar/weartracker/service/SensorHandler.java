@@ -3,21 +3,24 @@ package cz.weissar.weartracker.service;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.os.BatteryManager;
 import android.os.Environment;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
 import cz.weissar.weartracker.database.Pref;
 
+import static android.content.Context.BATTERY_SERVICE;
+
 public class SensorHandler {
 
     private Context context;
+    private int batLevel;
 
     public enum Type {
 
@@ -81,6 +84,9 @@ public class SensorHandler {
         for (int i = 0; i < (columnCount * 2); i++) {
             values[i] = new float[SIZE];
         }
+
+        BatteryManager bm = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+        batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
     }
 
     /**
@@ -102,6 +108,9 @@ public class SensorHandler {
 
         if (pointer == SIZE) {
             saveValues();
+
+            BatteryManager bm = (BatteryManager) context.getSystemService(BATTERY_SERVICE);
+            batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         }
 
         // TODO - detekceChovaniZRulesu() ... a v tom případě vyslat request na telefon a tak - na to bude ale nový objekt
@@ -121,9 +130,8 @@ public class SensorHandler {
 
         try {
 
-            SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy");
             String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/"
-                    + /*sdf.format(Calendar.getInstance().getTime())*/ Pref.getFolderName(context) + "/"
+                    + Pref.getFolderName(context) + "/"
                     + sensorType.name() + ".txt";
             File file = new File(fileName);
 
@@ -131,23 +139,20 @@ public class SensorHandler {
 
             boolean append = false;
             final StringBuilder builder = new StringBuilder(); //JÍŤA NECHCE HLAVIČKU
-            if (!file.exists()) {
-                //builder = new StringBuilder("timestamp," + (sensorType.equals(Type.PRESSURE)? "hpa":(sensorType.equals(Type.HEART_RATE)? "bpm":"x")) + (sensorType.getColumnCount() == 1 ? "\n" : ",y,z\n"));
-            } else {
-                //builder = new StringBuilder();
+            if (file.exists()) {
                 append = true;
             }
 
             for (int i = 0; i < lastPoint; i++) {
                 if (sensorType.getColumnCount() == 1) {
-                    builder.append(String.format("%s,%s\n", firstFilled ? timestamp1[i] : timestamp2[i],
-                            values[firstFilled ? 0 : (0 + columnCount)][i]
+                    builder.append(String.format("%s,%s,%s\n", firstFilled ? timestamp1[i] : timestamp2[i],
+                            values[firstFilled ? 0 : (0 + columnCount)][i], batLevel
                     ));
                 } else {
-                    builder.append(String.format("%s,%s,%s,%s\n", firstFilled ? timestamp1[i] : timestamp2[i],
+                    builder.append(String.format("%s,%s,%s,%s,%s\n", firstFilled ? timestamp1[i] : timestamp2[i],
                             values[firstFilled ? 0 : (0 + columnCount)][i],
                             values[firstFilled ? 1 : (1 + columnCount)][i],
-                            values[firstFilled ? 2 : (2 + columnCount)][i]
+                            values[firstFilled ? 2 : (2 + columnCount)][i], batLevel
                     ));
                 }
             }
