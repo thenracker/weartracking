@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import cz.weissar.weartracker.database.ContextualUserQuestionnaire;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
@@ -24,9 +27,12 @@ public class RestClient {
     private static final String ACCEPT_PNG = "Accept: image/png";
     private static final String ACCEPT_PDF = "Accept: application/pdf";
     private static final String ACCESS_TOKEN = "Access-Token";
+    private static final String AUTHORIZATION = "Authorization";
+
+    public static final String TEST_TOKEN = "Bearer 1s1qlnvk8l284nbb744ami2dbqfcn345bntbg44ij21dccnbmtej";
 
     private static final String CONTENT_TYPE_JSON = "Content-Type: application/json";
-    private static final String BASE_URL = "http://www.seznam.cz"; //Fixme změnit samozřejmě ;)
+    private static final String BASE_URL = "http://imitgw.uhk.cz:59782/core/rest/";
 
     private static RestClient instance = new RestClient();
 
@@ -50,10 +56,9 @@ public class RestClient {
 
     public interface WearTrackerService {
 
-        @Headers({ACCEPT_JSON,
-                CONTENT_TYPE_JSON})
-        @GET("randalSluzba")
-        Call<ResponseBody> getAccountInfo(@Header(ACCESS_TOKEN) String token);
+        @Headers({ACCEPT_JSON, CONTENT_TYPE_JSON})
+        @GET("rules")
+        Call<List<ContextualUserQuestionnaire>> getRules(@Header(AUTHORIZATION) String token);
 
     }
 
@@ -63,7 +68,7 @@ public class RestClient {
     private class RetrofitBuilder {
         private String baseUrl;
         private HttpLoggingInterceptor.Level level = HttpLoggingInterceptor.Level.NONE;
-        //private Converter.Factory converter = GsonConverterFactory.create(JSONUtils.getConfiguredGson());
+        private Converter.Factory converter = GsonConverterFactory.create(); //GsonConverterFactory.create(JSONUtils.getConfiguredGson());
         //private Converter.Factory scalarConverter = ScalarsConverterFactory.create();
         //private int timeout = DEFAULT_TIMEOUT;
         private List<Interceptor> interceptors = new ArrayList<>();
@@ -113,7 +118,7 @@ public class RestClient {
 
             return new Retrofit.Builder()
                     .baseUrl(baseUrl)
-                    //.addConverterFactory(converter)
+                    .addConverterFactory(converter)
                     //.addConverterFactory(scalarConverter)
                     .client(httpClient.build())
                     .build();

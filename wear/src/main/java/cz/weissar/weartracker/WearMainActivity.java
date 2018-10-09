@@ -18,8 +18,17 @@ import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
+import java.util.List;
+
+import cz.weissar.weartracker.database.ContextualUserQuestionnaire;
+import cz.weissar.weartracker.rest.RestClient;
 import cz.weissar.weartracker.service.SendFilesService;
 import cz.weissar.weartracker.service.TrackingService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static cz.weissar.weartracker.rest.RestClient.TEST_TOKEN;
 
 public class WearMainActivity extends WearableActivity implements MessageClient.OnMessageReceivedListener {
 
@@ -85,9 +94,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             public void onClick(View view) {
                 stopService(new Intent(WearMainActivity.this, TrackingService.class));
                 mTextView.setText("Měření ukončeno");
-                Intent intent = new Intent(WearMainActivity.this, SendFilesService.class);
+                /*Intent intent = new Intent(WearMainActivity.this, SendFilesService.class); //odesílání
                 intent.putExtra("NAME", "HEART_RATE"); //todo pozměňkat
-                startService(intent);
+                startService(intent);*/
             }
         });
 
@@ -96,6 +105,20 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         } else {
             mTextView.setText("Spusťte měření");
         }
+
+        RestClient.get().getRules(TEST_TOKEN).enqueue(new Callback<List<ContextualUserQuestionnaire>>() {
+            @Override
+            public void onResponse(Call<List<ContextualUserQuestionnaire>> call, Response<List<ContextualUserQuestionnaire>> response) {
+
+                System.out.println(response);
+            }
+
+            @Override
+            public void onFailure(Call<List<ContextualUserQuestionnaire>> call, Throwable t) {
+
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
