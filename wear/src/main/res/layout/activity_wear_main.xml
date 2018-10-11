@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context=".WearMainActivity"
+    tools:context=".ui.WearMainActivity"
     tools:deviceIds="wear">
 
     <FrameLayout
@@ -46,15 +46,18 @@
             android:layout_width="36dp"
             android:layout_height="36dp" />
 
-        <!--<ImageView
-            android:id="@+id/saveButton"
-            android:src="@drawable/ic_more_vert_24dp_wht"
-            android:layout_marginTop="32dp"
-            android:layout_marginLeft="60dp"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:layout_width="36dp"
-            android:layout_height="36dp" />-->
+        <FrameLayout
+            android:id="@+id/progressFrameLayout"
+            android:clickable="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ProgressBar
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
 
     </FrameLayout>
 </android.support.wear.widget.BoxInsetLayout>

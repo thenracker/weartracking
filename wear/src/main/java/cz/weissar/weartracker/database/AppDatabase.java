@@ -6,6 +6,6 @@ import com.raizlabs.android.dbflow.annotation.Database;
 public class AppDatabase {
 
     public static final String NAME = "weartracker"; // we will add the .db extension
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
 
 }

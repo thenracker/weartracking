@@ -1,4 +1,4 @@
-package cz.weissar.weartracker;
+package cz.weissar.weartracker.ui;
 
 import android.Manifest;
 import android.app.ActivityManager;
@@ -11,18 +11,21 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
-import com.google.android.gms.wearable.Wearable;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import java.util.List;
 
-import cz.weissar.weartracker.database.ContextualUserQuestionnaire;
+import cz.weissar.weartracker.R;
+import cz.weissar.weartracker.database.Rule;
+import cz.weissar.weartracker.dto.ContextualUserQuestionnaire;
 import cz.weissar.weartracker.rest.RestClient;
-import cz.weissar.weartracker.service.SendFilesService;
 import cz.weissar.weartracker.service.TrackingService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,11 +35,10 @@ import static cz.weissar.weartracker.rest.RestClient.TEST_TOKEN;
 
 public class WearMainActivity extends WearableActivity implements MessageClient.OnMessageReceivedListener {
 
-    private TextView mTextView;
-
+    TextView mTextView;
     ImageView cancelButton;
     ImageView okButton;
-    //ImageView saveButton;
+    FrameLayout progressFrameLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,35 +48,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         mTextView = findViewById(R.id.text);
         okButton = findViewById(R.id.okButton);
         cancelButton = findViewById(R.id.cancelButton);
-        //saveButton = findViewById(R.id.saveButton);
+        progressFrameLayout = findViewById(R.id.progressFrameLayout);
 
-        mTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //mTextView.setText(String.valueOf(SQLite.selectCountOf().from(Measurement.class).count()));
-            }
-        });
-
-        /*saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (ContextCompat.checkSelfPermission(WearMainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 666);
-                } else {
-                    for (SensorHandler.Type sensor : TrackingService.sensors) {
-                        saveVals(sensor);
-                    }
-                    Toast.makeText(WearMainActivity.this, "Probíhá ukládání", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
-
-        // Enables Always-on
-        //setAmbientEnabled();
-
-
-        Wearable.getMessageClient(this).addListener(this);
+        //Wearable.getMessageClient(this).addListener(this);
 
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,13 +85,22 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         RestClient.get().getRules(TEST_TOKEN).enqueue(new Callback<List<ContextualUserQuestionnaire>>() {
             @Override
             public void onResponse(Call<List<ContextualUserQuestionnaire>> call, Response<List<ContextualUserQuestionnaire>> response) {
-
-                System.out.println(response);
+                SQLite.delete().from(Rule.class).execute();
+                List<ContextualUserQuestionnaire> body = response.body();
+                for (ContextualUserQuestionnaire contextualUserQuestionnaire : body) {
+                    for (Rule rule : contextualUserQuestionnaire.getStartRules()) {
+                        rule.async().save();
+                    }
+                    for (Rule rule : contextualUserQuestionnaire.getEndRules()) {
+                        rule.async().save();
+                    }
+                }
+                progressFrameLayout.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(Call<List<ContextualUserQuestionnaire>> call, Throwable t) {
-
+                Toast.makeText(WearMainActivity.this, "Chyba načítání rulesů", Toast.LENGTH_SHORT).show();
                 t.printStackTrace();
             }
         });

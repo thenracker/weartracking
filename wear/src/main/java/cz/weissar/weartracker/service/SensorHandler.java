@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.BatteryManager;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,6 +15,13 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import cz.weissar.weartracker.database.Pref;
+import cz.weissar.weartracker.database.Rule;
+import cz.weissar.weartracker.dto.Activity;
+import cz.weissar.weartracker.rest.RestClient;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Context.BATTERY_SERVICE;
 
@@ -21,6 +29,13 @@ public class SensorHandler {
 
     private Context context;
     private int batLevel;
+
+    @Nullable
+    Rule rule;
+
+    public void addRule(Rule rule) {
+        this.rule = rule;
+    }
 
     public enum Type {
 
@@ -113,8 +128,24 @@ public class SensorHandler {
             batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         }
 
+        // rules zde rule; - rozmyšleno bylo dobře - blížíme se realizaci
         // TODO - detekceChovaniZRulesu() ... a v tom případě vyslat request na telefon a tak - na to bude ale nový objekt
         // TODO - manager, který to úplně pozaobstará - řekne přes bluetooth telefonu - ukaž notifikaci!
+    }
+
+    private void notifyBreakingTheRules() {
+        Activity activity = new Activity(rule.getId().intValue()); //TODO - chceme IdQuestionnaire ?
+        RestClient.get().postActivity(RestClient.TEST_TOKEN, activity).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                //TODO
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+            }
+        });
     }
 
     private long currentMillis() {

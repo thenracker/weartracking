@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import cz.weissar.weartracker.database.ContextualUserQuestionnaire;
+import cz.weissar.weartracker.dto.Activity;
+import cz.weissar.weartracker.dto.ContextualUserQuestionnaire;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
@@ -13,9 +14,11 @@ import retrofit2.Call;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
+import retrofit2.http.POST;
 
 /**
  * Created by pweissar
@@ -26,7 +29,6 @@ public class RestClient {
     private static final String ACCEPT_JSON = "Accept: application/json";
     private static final String ACCEPT_PNG = "Accept: image/png";
     private static final String ACCEPT_PDF = "Accept: application/pdf";
-    private static final String ACCESS_TOKEN = "Access-Token";
     private static final String AUTHORIZATION = "Authorization";
 
     public static final String TEST_TOKEN = "Bearer 1s1qlnvk8l284nbb744ami2dbqfcn345bntbg44ij21dccnbmtej";
@@ -59,6 +61,10 @@ public class RestClient {
         @Headers({ACCEPT_JSON, CONTENT_TYPE_JSON})
         @GET("rules")
         Call<List<ContextualUserQuestionnaire>> getRules(@Header(AUTHORIZATION) String token);
+
+        @Headers({ACCEPT_JSON, CONTENT_TYPE_JSON})
+        @POST("activity")
+        Call<ResponseBody> postActivity(@Header(AUTHORIZATION) String token, @Body Activity activity);
 
     }
 

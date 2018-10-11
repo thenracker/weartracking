@@ -15,11 +15,14 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.raizlabs.android.dbflow.sql.language.SQLite;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import cz.weissar.weartracker.R;
-import cz.weissar.weartracker.WearMainActivity;
+import cz.weissar.weartracker.database.Rule;
+import cz.weissar.weartracker.ui.WearMainActivity;
 
 public class TrackingService extends Service implements SensorEventListener {
 
@@ -32,6 +35,7 @@ public class TrackingService extends Service implements SensorEventListener {
     PowerManager.WakeLock wl;
 
     boolean isRegistered;
+    private List<Rule> rules;
 
     public TrackingService() {
     }
@@ -39,11 +43,9 @@ public class TrackingService extends Service implements SensorEventListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WAKELOCK_TAG");
             wl.acquire();
-
             return START_REDELIVER_INTENT;
         } catch (Exception e) {
             return START_REDELIVER_INTENT;
@@ -54,6 +56,7 @@ public class TrackingService extends Service implements SensorEventListener {
     public void onCreate() {
         super.onCreate();
         startForeground(NOTIFICATION, showNotification(null));
+        rules = SQLite.select().from(Rule.class).queryList();
         register();
     }
 
@@ -67,11 +70,19 @@ public class TrackingService extends Service implements SensorEventListener {
         if (!isRegistered) {
             handlers = new ArrayList<>();
             SensorManager manager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            for (SensorHandler.Type sensor : sensors) {
-                handlers.add(SensorHandler.newInstance(sensor, getBaseContext()));
-                manager.registerListener(this, manager.getDefaultSensor(sensor.getType()), sensor.getDelay());
+            for (SensorHandler.Type type : sensors) {
+                SensorHandler sensorHandler = SensorHandler.newInstance(type, getBaseContext());
+                handlers.add(sensorHandler);
+                if (type == SensorHandler.Type.HEART_RATE) {
+                    for (Rule rule : rules) {
+                        if (rule.getRecordType().equals("HR")) {
+                            sensorHandler.addRule(rule);
+                        }
+                    }
+                }
+                manager.registerListener(this, manager.getDefaultSensor(type.getType()), type.getDelay());
             }
-            Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
         }
         isRegistered = true;
     }
@@ -91,7 +102,7 @@ public class TrackingService extends Service implements SensorEventListener {
 
         NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nManager.cancel(NOTIFICATION);
-        Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
 
     @Override

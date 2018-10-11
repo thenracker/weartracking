@@ -7,6 +7,8 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.time.temporal.ChronoUnit;
 
+import cz.weissar.weartracker.dto.ContextualUserQuestionnaire;
+
 @Table(database = AppDatabase.class)
 public class Rule extends BaseModel { // fixme - bude využíváno aj jako DTOčko
 
@@ -30,6 +32,7 @@ public class Rule extends BaseModel { // fixme - bude využíváno aj jako DTOč
     private double threshold;
     @Column
     private boolean canBeNull;
+
     //todo
     private ContextualUserQuestionnaire startsQuestionnaire;
     //todo

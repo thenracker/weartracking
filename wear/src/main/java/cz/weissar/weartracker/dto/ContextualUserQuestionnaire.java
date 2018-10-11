@@ -1,7 +1,10 @@
-package cz.weissar.weartracker.database;
+package cz.weissar.weartracker.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import cz.weissar.weartracker.database.Rule;
+import cz.weissar.weartracker.database.UserQuestionnaire;
 
 /**
  * Created by vlado on 26/07/2017.
