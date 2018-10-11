@@ -16,11 +16,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.gms.wearable.MessageClient;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.Wearable;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import cz.weissar.weartracker.R;
 import cz.weissar.weartracker.database.Rule;
@@ -51,6 +56,33 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         progressFrameLayout = findViewById(R.id.progressFrameLayout);
 
         //Wearable.getMessageClient(this).addListener(this);
+        mTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // TODO přepsat do nového vlákna
+                // https://github.com/tutsplus/get-wear-os-and-android-talking/blob/master/wear/src/main/java/com/jessicathornsby/datalayer/MainActivity.java
+                final Task<List<Node>> connectedNodes = Wearable.getNodeClient(WearMainActivity.this).getConnectedNodes();
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            List<Node> nodes = Tasks.await(connectedNodes);
+                            for (Node node : nodes) {
+                                Wearable.getMessageClient(WearMainActivity.this).sendMessage(node.getId(), "TEST", null);
+                            }
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }).start();
+
+
+            }
+        });
 
         okButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,11 +121,13 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                 List<ContextualUserQuestionnaire> body = response.body();
                 for (ContextualUserQuestionnaire contextualUserQuestionnaire : body) {
                     for (Rule rule : contextualUserQuestionnaire.getStartRules()) {
+                        rule.setQuestionnaireId(contextualUserQuestionnaire.getId());
                         rule.async().save();
                     }
-                    for (Rule rule : contextualUserQuestionnaire.getEndRules()) {
+                    // prozatím end rules ignorujeme - TODO !
+                    /*for (Rule rule : contextualUserQuestionnaire.getEndRules()) {
                         rule.async().save();
-                    }
+                    }*/
                 }
                 progressFrameLayout.setVisibility(View.GONE);
             }

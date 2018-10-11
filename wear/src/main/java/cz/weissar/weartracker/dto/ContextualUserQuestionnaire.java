@@ -11,6 +11,8 @@ import cz.weissar.weartracker.database.UserQuestionnaire;
  */
 public class ContextualUserQuestionnaire extends UserQuestionnaire {
 
+    private int id;
+
     private List<Rule> startRules = new ArrayList<>();
 
     private List<Rule> endRules = new ArrayList<>();
@@ -89,5 +91,9 @@ public class ContextualUserQuestionnaire extends UserQuestionnaire {
 
     public void setNotificationBody(String notificationBody) {
         this.notificationBody = notificationBody;
+    }
+
+    public int getId() {
+        return id;
     }
 }

@@ -18,6 +18,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 
+import cz.weissar.weartracker.database.Pref;
+
 public class SendFilesService extends IntentService {
 
     private static final int CACHE_SIZE = 1024 * 10;
@@ -37,6 +39,18 @@ public class SendFilesService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+
+        /*
+        Tady je základní brána na data. Dokud nevypadne proud, tak by to mělo fungovat.
+            https://3c4e3694.ngrok.io/
+
+            Jsou tam 4 servlety:
+            rest/accelerometer
+            rest/gyroscope
+            rest/heart-rate
+            rest/pressure
+            ,které vrací vždy počet zpracovaných řádků.
+         */
 
         //handleOldWay(intent);
 
@@ -62,29 +76,14 @@ public class SendFilesService extends IntentService {
 
         request = new DataOutputStream(httpConn.getOutputStream());
 
-        String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/MEASURE_2/"
-                //+ Pref.getFolderName(getBaseContext()) + "/"
+        String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/"
+                + Pref.getFolderName(getApplicationContext()) + "/"
                 + intent.getExtras().getString("NAME") + ".txt";
+
         File file = new File(fileName);
 
         addFilePart("file", file);
         finish(httpConn);
-    }
-
-
-    /**
-     * Adds a form field to the request
-     *
-     * @param name  field name
-     * @param value field value
-     */
-    public void addFormField(String name, String value) throws IOException {
-        request.writeBytes(this.twoHyphens + this.boundary + this.crlf);
-        request.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"" + this.crlf);
-        request.writeBytes("Content-Type: text/plain; charset=UTF-8" + this.crlf);
-        request.writeBytes(this.crlf);
-        request.writeBytes(value + this.crlf);
-        request.flush();
     }
 
     /**
@@ -148,4 +147,20 @@ public class SendFilesService extends IntentService {
 
         return response;
     }
+
+    /**
+     * Adds a form field to the request
+     *
+     * @param name  field name
+     * @param value field value
+
+    public void addFormField(String name, String value) throws IOException {
+        request.writeBytes(this.twoHyphens + this.boundary + this.crlf);
+        request.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"" + this.crlf);
+        request.writeBytes("Content-Type: text/plain; charset=UTF-8" + this.crlf);
+        request.writeBytes(this.crlf);
+        request.writeBytes(value + this.crlf);
+        request.flush();
+    }
+     */
 }

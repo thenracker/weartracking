@@ -24,6 +24,8 @@
         </activity>
 
         <service android:name=".SaveFileReceiver"
+            android:enabled="true"
+            android:exported="true"
             >
 
             <intent-filter>

@@ -38,6 +38,9 @@ public class Rule extends BaseModel { // fixme - bude využíváno aj jako DTOč
     //todo
     private ContextualUserQuestionnaire endsQuestionnaire;
 
+    @Column
+    private int questionnaireId;
+
     public Rule() {
     }
 
@@ -142,6 +145,10 @@ public class Rule extends BaseModel { // fixme - bude využíváno aj jako DTOč
         this.canBeNull = canBeNull;
     }
 
+    public int getQuestionnaireId() {
+        return questionnaireId;
+    }
+
     public UserQuestionnaire getUserQuestionnaire() {
         if (endsQuestionnaire != null) {
             return endsQuestionnaire;
@@ -155,6 +162,10 @@ public class Rule extends BaseModel { // fixme - bude využíváno aj jako DTOč
 
     public void setEndsQuestionnaire(ContextualUserQuestionnaire endsQuestionnaire) {
         this.endsQuestionnaire = endsQuestionnaire;
+    }
+
+    public void setQuestionnaireId(int id) {
+        this.questionnaireId = id;
     }
 
     public enum Function {

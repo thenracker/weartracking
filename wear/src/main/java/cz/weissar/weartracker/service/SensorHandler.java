@@ -33,6 +33,9 @@ public class SensorHandler {
     @Nullable
     Rule rule;
 
+    long breakingRulesStartTimestamp;
+    boolean notificationSent;
+
     public void addRule(Rule rule) {
         this.rule = rule;
     }
@@ -128,13 +131,29 @@ public class SensorHandler {
             batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         }
 
+        if (rule != null){
+            if (!notificationSent && values[0] > rule.getThreshold()){ //a není to poprvé (už máme timestamp)
+                if (breakingRulesStartTimestamp == 0) {
+                    breakingRulesStartTimestamp = System.currentTimeMillis();
+                }
+                long l = (System.currentTimeMillis() - breakingRulesStartTimestamp) / 1000;
+                if (l >= rule.getWindowSize() * 60){
+                    // todo * TYP jednotky
+                    notifyBreakingTheRules();
+                }
+            } else {
+                // vynulovat time stamp
+                breakingRulesStartTimestamp = 0;
+            }
+        }
         // rules zde rule; - rozmyšleno bylo dobře - blížíme se realizaci
         // TODO - detekceChovaniZRulesu() ... a v tom případě vyslat request na telefon a tak - na to bude ale nový objekt
         // TODO - manager, který to úplně pozaobstará - řekne přes bluetooth telefonu - ukaž notifikaci!
     }
 
     private void notifyBreakingTheRules() {
-        Activity activity = new Activity(rule.getId().intValue()); //TODO - chceme IdQuestionnaire ?
+        notificationSent = true;
+        Activity activity = new Activity(rule.getQuestionnaireId()); //TODO - chceme IdQuestionnaire ?
         RestClient.get().postActivity(RestClient.TEST_TOKEN, activity).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -169,7 +188,7 @@ public class SensorHandler {
             file.getParentFile().mkdirs(); //složky nad
 
             boolean append = false;
-            final StringBuilder builder = new StringBuilder(); //JÍŤA NECHCE HLAVIČKU
+            final StringBuilder builder = new StringBuilder();
             if (file.exists()) {
                 append = true;
             }
