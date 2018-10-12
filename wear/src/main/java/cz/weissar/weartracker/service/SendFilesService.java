@@ -40,30 +40,19 @@ public class SendFilesService extends IntentService {
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
 
-        /*
-        Tady je základní brána na data. Dokud nevypadne proud, tak by to mělo fungovat.
-            https://3c4e3694.ngrok.io/
-
-            Jsou tam 4 servlety:
-            rest/accelerometer
-            rest/gyroscope
-            rest/heart-rate
-            rest/pressure
-            ,které vrací vždy počet zpracovaných řádků.
-         */
-
-        //handleOldWay(intent);
-
-        try {
-            handleNewWay(intent, "http://imitgw.uhk.cz:59729/uhkhelper/file");
-        } catch (Exception e) {
-            e.printStackTrace();
+        for (SensorHandler.Type type : SensorHandler.Type.values()) {
+            try {
+                handleNewWay(intent, type);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
-    private void handleNewWay(Intent intent, String requestURL) throws Exception {
+    private void handleNewWay(Intent intent, SensorHandler.Type type) throws Exception {
         // creates a unique boundary based on time stamp
-        URL url = new URL(requestURL);
+        URL url = new URL(type.getUrl());
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setUseCaches(false);
         httpConn.setDoOutput(true); // indicates POST method
@@ -78,12 +67,16 @@ public class SendFilesService extends IntentService {
 
         String fileName = Environment.getExternalStorageDirectory().toString() + "/WEARTracker/"
                 + Pref.getFolderName(getApplicationContext()) + "/"
-                + intent.getExtras().getString("NAME") + ".txt";
+                + type.name() + ".txt";
 
         File file = new File(fileName);
 
         addFilePart("file", file);
-        finish(httpConn);
+        finish(httpConn); //poslat na server
+
+        if (file.exists()) {
+            file.delete();
+        }
     }
 
     /**

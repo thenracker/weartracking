@@ -82,7 +82,7 @@ public class TrackingService extends Service implements SensorEventListener {
                 }
                 manager.registerListener(this, manager.getDefaultSensor(type.getType()), type.getDelay());
             }
-            //Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Měření spuštěno", Toast.LENGTH_SHORT).show();
         }
         isRegistered = true;
     }
@@ -102,7 +102,7 @@ public class TrackingService extends Service implements SensorEventListener {
 
         NotificationManager nManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         nManager.cancel(NOTIFICATION);
-        //Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Měření zastaveno", Toast.LENGTH_SHORT).show();
     }
 
     @Override

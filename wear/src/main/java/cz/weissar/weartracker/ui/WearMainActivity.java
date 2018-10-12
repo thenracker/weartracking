@@ -31,6 +31,8 @@ import cz.weissar.weartracker.R;
 import cz.weissar.weartracker.database.Rule;
 import cz.weissar.weartracker.dto.ContextualUserQuestionnaire;
 import cz.weissar.weartracker.rest.RestClient;
+import cz.weissar.weartracker.service.DeviceBroadcaster;
+import cz.weissar.weartracker.service.SendFilesService;
 import cz.weissar.weartracker.service.TrackingService;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -59,28 +61,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
         mTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO přepsat do nového vlákna
-                // https://github.com/tutsplus/get-wear-os-and-android-talking/blob/master/wear/src/main/java/com/jessicathornsby/datalayer/MainActivity.java
-                final Task<List<Node>> connectedNodes = Wearable.getNodeClient(WearMainActivity.this).getConnectedNodes();
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            List<Node> nodes = Tasks.await(connectedNodes);
-                            for (Node node : nodes) {
-                                Wearable.getMessageClient(WearMainActivity.this).sendMessage(node.getId(), "TEST", null);
-                            }
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }).start();
-
-
+                DeviceBroadcaster.notifyDevices(WearMainActivity.this);
             }
         });
 
@@ -102,9 +83,8 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             public void onClick(View view) {
                 stopService(new Intent(WearMainActivity.this, TrackingService.class));
                 mTextView.setText("Měření ukončeno");
-                /*Intent intent = new Intent(WearMainActivity.this, SendFilesService.class); //odesílání
-                intent.putExtra("NAME", "HEART_RATE"); //todo pozměňkat
-                startService(intent);*/
+                Intent intent = new Intent(WearMainActivity.this, SendFilesService.class); //odesílání
+                startService(intent);
             }
         });
 

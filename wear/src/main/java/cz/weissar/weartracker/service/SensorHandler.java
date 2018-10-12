@@ -68,6 +68,21 @@ public class SensorHandler {
         public int getDelay() {
             return delay;
         }
+
+        public String getUrl() {
+            switch (this) {
+                case ACCELEROMETER:
+                    return "https://3c4e3694.ngrok.io/rest/accelerometer";
+                case GYROSCOPE:
+                    return "https://3c4e3694.ngrok.io/rest/gyroscope";
+                case PRESSURE:
+                    return "https://3c4e3694.ngrok.io/rest/pressure";
+                case HEART_RATE:
+                    return "https://3c4e3694.ngrok.io/rest/heart-rate";
+                default:
+                    return "https://3c4e3694.ngrok.io/";
+            }
+        }
     }
 
     private final static int SIZE = 1024;
@@ -131,13 +146,13 @@ public class SensorHandler {
             batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
         }
 
-        if (rule != null){
-            if (!notificationSent && values[0] > rule.getThreshold()){ //a není to poprvé (už máme timestamp)
+        if (rule != null) {
+            if (!notificationSent && values[0] > rule.getThreshold()) { //a není to poprvé (už máme timestamp)
                 if (breakingRulesStartTimestamp == 0) {
                     breakingRulesStartTimestamp = System.currentTimeMillis();
                 }
                 long l = (System.currentTimeMillis() - breakingRulesStartTimestamp) / 1000;
-                if (l >= rule.getWindowSize() * 60){
+                if (l >= rule.getWindowSize() * 60) {
                     // todo * TYP jednotky
                     notifyBreakingTheRules();
                 }
