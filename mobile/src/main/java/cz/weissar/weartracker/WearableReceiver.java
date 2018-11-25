@@ -17,20 +17,26 @@ import com.google.android.gms.wearable.WearableListenerService;
 public class WearableReceiver extends WearableListenerService {
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
     public void onMessageReceived(MessageEvent messageEvent) {
         super.onMessageReceived(messageEvent);
 
-        String channelId = "WearTracker_helper_channel";
-        String channelName = "WearTracker Channel";
 
-        Toast.makeText(this, messageEvent.getPath(), Toast.LENGTH_SHORT).show();
+        if (messageEvent.getPath() == "WearTrackerRulesWarning") {
+            // calling procedures to notify server and receive questionnaire
+        }
+
+
+
+
 
         sendMessage("Ahoj", "Dotazníky čekají");
+
+
+
+        //String channelName = "WearTracker Channel";
+        //String channelId = "WearTracker_helper_channel";
+
+
         /*
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId);
 
@@ -84,6 +90,11 @@ public class WearableReceiver extends WearableListenerService {
         Notification note = builder.build();
 
         mNotifyMgr.notify(1, note); */
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
     }
 
     private void sendMessage(String title, String message) {
