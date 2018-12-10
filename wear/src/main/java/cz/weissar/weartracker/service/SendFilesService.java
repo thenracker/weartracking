@@ -62,6 +62,7 @@ public class SendFilesService extends IntentService {
         httpConn.setRequestProperty("Connection", "Keep-Alive");
         httpConn.setRequestProperty("Cache-Control", "no-cache");
         httpConn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + this.boundary);
+        // TODO "Authorization":"bearer TOKEN"
 
         request = new DataOutputStream(httpConn.getOutputStream());
 

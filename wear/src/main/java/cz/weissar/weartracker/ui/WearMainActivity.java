@@ -94,6 +94,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
             mTextView.setText("Spusťte měření");
         }
 
+        /*
         RestClient.get().getRules(TEST_TOKEN).enqueue(new Callback<List<ContextualUserQuestionnaire>>() {
             @Override
             public void onResponse(Call<List<ContextualUserQuestionnaire>> call, Response<List<ContextualUserQuestionnaire>> response) {
@@ -107,7 +108,7 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                     // prozatím end rules ignorujeme - TODO !
                     /*for (Rule rule : contextualUserQuestionnaire.getEndRules()) {
                         rule.async().save();
-                    }*/
+                    }*//*
                 }
                 progressFrameLayout.setVisibility(View.GONE);
             }
@@ -118,6 +119,9 @@ public class WearMainActivity extends WearableActivity implements MessageClient.
                 t.printStackTrace();
             }
         });
+        */
+
+        progressFrameLayout.setVisibility(View.GONE); // fixme - potřebujeme rulese
     }
 
     @Override
